@@ -1,0 +1,11 @@
+# Normalize line endings: LF in the repo and on Linux CI, regardless of OS
+* text=auto eol=lf
+
+# Windows scripts need CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binaries
+*.png binary
+*.jpg binary
+*.gif binary
