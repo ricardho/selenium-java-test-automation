@@ -17,7 +17,7 @@ jobs:
     name: Secret scan (Gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0 # scan the full history, not only the last commit
 
@@ -44,9 +44,9 @@ jobs:
       API_PASSWORD: ${{ secrets.API_PASSWORD }}
       EVIDENCE_MODE: always # final screenshot + PDF for every test in CI
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -83,9 +83,9 @@ jobs:
     env:
       SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
@@ -108,9 +108,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
