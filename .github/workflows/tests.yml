@@ -21,9 +21,18 @@ jobs:
         with:
           fetch-depth: 0 # scan the full history, not only the last commit
 
-      - uses: gitleaks/gitleaks-action@v2
+      # The Gitleaks CLI is used instead of gitleaks-action: the action scans only the pushed
+      # commit range, which fails on the first push of a branch. The CLI scans the full history
+      # and is the same command developers can run locally.
+      - name: Install Gitleaks
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.21.2
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+
+      - name: Scan full git history for secrets
+        run: ./gitleaks git --redact --verbose --exit-code 1 .
 
   tests:
     name: UI + API + BDD (Chrome)
@@ -88,7 +97,9 @@ jobs:
   report:
     name: Publish Allure report
     needs: tests
-    if: always() && github.ref == 'refs/heads/main'
+    # Publish even when tests fail (that is when the report matters most),
+    # but not when they never ran (secret scan failed) or the run was cancelled.
+    if: ${{ !cancelled() && (needs.tests.result == 'success' || needs.tests.result == 'failure') && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
