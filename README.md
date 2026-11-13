@@ -29,6 +29,7 @@ the tools most used in the market and current best practices for test architectu
 | Assertions | AssertJ (including soft assertions) |
 | Test data | Datafaker |
 | Reports | Allure (screenshots, page source and HTTP traffic attached) |
+| Evidence | Configurable screenshots per step + PDF evidence per test (OpenPDF) |
 | Infrastructure | Selenium Grid on Docker Compose |
 | CI/CD | GitHub Actions, report published to GitHub Pages |
 
@@ -67,7 +68,8 @@ src/test/java/com/automation
 │   └── components/  Reusable UI parts (header, cart badge, menu)
 ├── data/          Records (User, Customer), enums (Product, SortOption) and data factories
 ├── api/           BookingClient + API models
-├── support/       JUnit extension (browser lifecycle, evidence on failure), helpers
+├── support/       JUnit browser lifecycle extension, helpers
+│   └── evidence/    Evidence modes, per-test recorder, PDF writer, step and HTTP capture
 ├── tests/ui/      UI tests (JUnit 5)
 ├── tests/api/     API tests (JUnit 5)
 └── bdd/           Cucumber runner, hooks, shared scenario state and step definitions
@@ -93,7 +95,8 @@ src/test/resources
 - **Externalized configuration.** URLs, browser, timeouts and credentials come from system properties
   or environment variables, with sensible defaults. Nothing environment-specific is hard-coded.
 - **Generated test data.** Datafaker creates unique customers and bookings, avoiding collisions.
-- **Evidence on failure.** Screenshot, URL and page source are attached to the report automatically.
+- **Configurable test evidence.** From failure-only screenshots up to a screenshot per step, plus
+  one PDF evidence document per test, ready for audit or UAT sign-off (see [Test evidence](#test-evidence)).
 - **API layer behind a client.** Tests never build raw HTTP calls, and responses are validated against JSON schemas.
 - **No duplicated reporting.** JUnit and Cucumber run in separate Surefire executions, each with its own Allure adapter.
 
@@ -170,6 +173,8 @@ See [.env.example](.env.example) for all variables.
 | `headless` | `HEADLESS` | false |
 | `timeout.seconds` | `TIMEOUT_SECONDS` | 10 |
 | `grid.url` | `GRID_URL` | (empty: run locally) |
+| `evidence.mode` | `EVIDENCE_MODE` | failure (`failure`, `always`, `steps`) |
+| `evidence.pdf` | `EVIDENCE_PDF` | true |
 | `sauce.password` | `SAUCE_PASSWORD` | **secret**, no default |
 | `api.username` / `api.password` | `API_USERNAME` / `API_PASSWORD` | **secret**, no default |
 
@@ -188,10 +193,43 @@ Additional safeguards:
 - **Gitleaks** scans the full git history on every push and fails the pipeline if a secret is committed.
 - Feature files use the `${SAUCE_PASSWORD}` placeholder, resolved at runtime, so no password is written in Gherkin.
 - `User.toString()` hides passwords, so they never appear in logs or Allure reports.
+- Authentication requests bypass the raw AllureRestAssured log: passwords and tokens are masked
+  as `***` in both the Allure report and the PDF evidence.
 - A missing secret fails fast with a message explaining how to provide it.
 
 > The credentials of both demo sites are public. They are still handled as secrets on purpose,
 > to demonstrate the approach used in real projects.
+
+## Test evidence
+
+Many teams (banking, insurance, consultancies) need evidence of **passed** tests too, for audit
+or UAT sign-off. The amount of evidence is configurable:
+
+| `evidence.mode` | What is captured | Typical use |
+|---|---|---|
+| `failure` (default) | Screenshot, URL and page source when a test fails | Local development: fastest |
+| `always` | Plus a final screenshot of every test | CI pipeline |
+| `steps` | Plus a screenshot after every step | Audit / UAT sign-off |
+
+```bash
+mvn test "-Devidence.mode=steps"
+```
+
+With `evidence.pdf=true` (default), each test also produces a **PDF evidence document** in
+`target/evidence/`, named like `PASSED_CheckoutTest_Should_complete_a_purchase_<timestamp>.pdf`:
+
+- Header: test, suite, status, start time, duration, application or API, browser, execution environment
+- Failure summary (failed tests)
+- Numbered steps with their screenshots; for API tests, every request and response
+  with passwords and tokens masked
+
+In `failure` mode only failed tests produce a PDF. Every PDF is also attached to the Allure report,
+and CI publishes them as the `test-evidence-pdf` build artifact.
+
+How it works: page-object `@Step` methods and Cucumber steps are both Allure steps, so a single
+Allure `StepLifecycleListener` takes the per-step screenshots for JUnit and Cucumber alike. A
+RestAssured filter records HTTP exchanges, and a thread-local recorder keeps evidence isolated
+when tests run in parallel.
 
 ## Reports
 

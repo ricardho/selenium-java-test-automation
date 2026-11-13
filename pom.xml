@@ -25,6 +25,7 @@
         <datafaker.version>2.4.2</datafaker.version>
         <jackson.version>2.18.1</jackson.version>
         <slf4j.version>2.0.16</slf4j.version>
+        <openpdf.version>2.0.3</openpdf.version>
 
         <!-- Plugin versions -->
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
@@ -141,6 +142,14 @@
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- PDF evidence documents -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>${openpdf.version}</version>
             <scope>test</scope>
         </dependency>
 

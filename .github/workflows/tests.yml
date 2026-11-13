@@ -33,6 +33,7 @@ jobs:
       SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
       API_USERNAME: ${{ secrets.API_USERNAME }}
       API_PASSWORD: ${{ secrets.API_PASSWORD }}
+      EVIDENCE_MODE: always # final screenshot + PDF for every test in CI
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +57,15 @@ jobs:
           name: allure-results
           path: target/allure-results
           retention-days: 14
+
+      - name: Upload PDF evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence-pdf
+          path: target/evidence
+          if-no-files-found: ignore
+          retention-days: 30
 
   cross-browser:
     name: UI smoke (Firefox)

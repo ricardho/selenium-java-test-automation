@@ -1,13 +1,12 @@
 package com.automation.support;
 
 import io.qameta.allure.Allure;
-import java.io.ByteArrayInputStream;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 
-/** Attaches debugging evidence to the Allure report. */
+/** Low-level helpers to capture evidence from the browser. */
 public final class Evidence {
 
     private Evidence() {
@@ -17,14 +16,14 @@ public final class Evidence {
         return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
     }
 
-    public static void attachFailureEvidence(WebDriver driver) {
+    /** Attaches the current URL and page source to Allure, to help debug failures. */
+    public static void attachPageDetails(WebDriver driver) {
         try {
-            Allure.addAttachment("Screenshot on failure", "image/png", new ByteArrayInputStream(screenshot(driver)), "png");
             Allure.addAttachment("Page URL", "text/plain", driver.getCurrentUrl());
             Allure.addAttachment("Page source", "text/html", driver.getPageSource(), "html");
         } catch (WebDriverException e) {
             // The browser may have crashed; never hide the original test failure.
-            Allure.addAttachment("Evidence capture failed", "text/plain", String.valueOf(e.getMessage()));
+            Allure.addAttachment("Page details unavailable", "text/plain", String.valueOf(e.getMessage()));
         }
     }
 }

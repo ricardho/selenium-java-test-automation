@@ -1,6 +1,7 @@
 package com.automation.config;
 
 import com.automation.driver.BrowserType;
+import com.automation.support.evidence.EvidenceMode;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -60,6 +61,18 @@ public final class TestConfig {
 
     public static Duration timeout() {
         return Duration.ofSeconds(Long.parseLong(get("timeout.seconds", "10")));
+    }
+
+    public static EvidenceMode evidenceMode() {
+        return EvidenceMode.from(get("evidence.mode", "failure"));
+    }
+
+    public static boolean evidencePdf() {
+        return Boolean.parseBoolean(get("evidence.pdf", "true"));
+    }
+
+    public static Path evidenceDirectory() {
+        return Path.of(get("evidence.dir", "target/evidence"));
     }
 
     public static String saucePassword() {

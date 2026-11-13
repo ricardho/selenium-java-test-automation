@@ -9,16 +9,19 @@ import com.automation.api.BookingFactory;
 import com.automation.api.model.Booking;
 import com.automation.api.model.CreatedBooking;
 import com.automation.config.TestConfig;
+import com.automation.support.evidence.EvidenceExtension;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 @Epic("API")
 @Feature("Booking")
 @Tag("api")
 @DisplayName("Booking API")
+@ExtendWith(EvidenceExtension.class)
 class BookingApiTest {
 
     private final BookingClient client = new BookingClient();
