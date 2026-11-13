@@ -1,14 +1,14 @@
 # Selenium Java Test Automation
 
-[![Tests](https://github.com/<your-user>/<your-repo>/actions/workflows/tests.yml/badge.svg)](https://github.com/<your-user>/<your-repo>/actions/workflows/tests.yml)
-[![Allure Report](https://img.shields.io/badge/report-Allure-orange)](https://<your-user>.github.io/<your-repo>/)
+[![Tests](https://github.com/ricardho/selenium-java-test-automation/actions/workflows/tests.yml/badge.svg)](https://github.com/ricardho/selenium-java-test-automation/actions/workflows/tests.yml)
+[![Allure Report](https://img.shields.io/badge/report-Allure-orange)](https://ricardho.github.io/selenium-java-test-automation/)
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![Selenium](https://img.shields.io/badge/Selenium-4-green)
 
 Test automation framework covering **web UI**, **REST API** and **BDD** scenarios, built with
 the tools most used in the market and current best practices for test architecture.
 
-**Live test report:** https://&lt;your-user&gt;.github.io/&lt;your-repo&gt;/
+**Live test report:** https://ricardho.github.io/selenium-java-test-automation/
 
 ## Systems under test
 
