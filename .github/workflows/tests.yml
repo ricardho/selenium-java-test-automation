@@ -1,0 +1,112 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * 1-5" # weekdays, catches changes in the demo sites
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secret-scan:
+    name: Secret scan (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # scan the full history, not only the last commit
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  tests:
+    name: UI + API + BDD (Chrome)
+    needs: secret-scan
+    runs-on: ubuntu-latest
+    env:
+      SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+      API_USERNAME: ${{ secrets.API_USERNAME }}
+      API_PASSWORD: ${{ secrets.API_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: JUnit tests (UI + API)
+        run: mvn -B -ntp test -DskipBdd -Dheadless=true
+
+      - name: Cucumber scenarios (BDD)
+        if: success() || failure()
+        run: mvn -B -ntp test -DskipJunit -Dheadless=true
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: target/allure-results
+          retention-days: 14
+
+  cross-browser:
+    name: UI smoke (Firefox)
+    needs: secret-scan
+    runs-on: ubuntu-latest
+    env:
+      SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: UI smoke tests on Firefox
+        run: mvn -B -ntp test -DskipBdd -Dgroups="ui & smoke" -Dbrowser=firefox -Dheadless=true
+
+  report:
+    name: Publish Allure report
+    needs: tests
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: allure-results
+          path: target/allure-results
+
+      - name: Generate Allure report
+        run: mvn -B -ntp allure:report
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/site/allure-maven-plugin
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
