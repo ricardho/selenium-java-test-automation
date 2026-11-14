@@ -1,5 +1,7 @@
 # Selenium Java Test Automation
 
+**English** | [Português](README.pt-BR.md)
+
 [![Tests](https://github.com/ricardho/selenium-java-test-automation/actions/workflows/tests.yml/badge.svg)](https://github.com/ricardho/selenium-java-test-automation/actions/workflows/tests.yml)
 [![Allure Report](https://img.shields.io/badge/report-Allure-orange)](https://ricardho.github.io/selenium-java-test-automation/)
 ![Java](https://img.shields.io/badge/Java-21-blue)
